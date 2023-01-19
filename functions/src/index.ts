@@ -11,3 +11,12 @@ exports.scrape = functions
       const bookings = await scrapeQuarteria()
       res.type('html').send(bookings.join('<br>'))
     })
+
+// TODO setup scheduled job
+// exports.scrapingSchedule = functions.pubsub
+//     .schedule('06:00')
+//     .timeZone('Europe/Stockholm')
+//     .onRun(async context => {
+//       await scrapeQuarteria()
+//       return null
+//     })
