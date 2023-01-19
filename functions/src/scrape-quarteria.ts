@@ -1,11 +1,6 @@
-// import {Booking} from './booking'
 import puppeteer, {Page} from 'puppeteer'
 import * as functions from 'firebase-functions'
-
-interface CalendarDay {
-    booked?: boolean
-    date?: number
-}
+import {CalendarDay} from './calendar-day'
 
 async function getCalenderDays(page: Page): Promise<CalendarDay[]> {
     return await page.$$eval('div[data-section-id="AVAILABILITY_CALENDAR_INLINE"] .notranslate', divs => {
@@ -15,7 +10,7 @@ async function getCalenderDays(page: Page): Promise<CalendarDay[]> {
                     .replace('calendar-day-', '')
 
                 return {
-                    date: Date.parse(dateAsString),
+                    date: new Date(Date.parse(dateAsString)),
                     booked: JSON.parse(div.getAttribute('data-is-day-blocked') || ''),
                 }
             })
@@ -68,8 +63,7 @@ const scrapeQuarteira = async () => {
             calendarDays = removeDuplicates(calendarDays)
         }
 
-        // TODO Remove
-        calendarDays.map(d => functions.logger.debug(new Date(d.date || '')))
+        calendarDays.map(d => functions.logger.debug(d.date))
     } catch (e) {
         functions.logger.error(e)
     } finally {
