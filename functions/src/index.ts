@@ -1,9 +1,13 @@
-import * as functions from "firebase-functions";
+import * as functions from 'firebase-functions'
+import scrapeQuarteria from './scrape-quarteria'
 
-// // Start writing functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+exports.scrape = functions
+    .runWith({
+      timeoutSeconds: 120,
+      memory: '512MB' || '2GB',
+    })
+    .region('europe-west3')
+    .https.onRequest(async (req, res) => {
+      const bookings = await scrapeQuarteria()
+      res.type('html').send(bookings.join('<br>'))
+    })
