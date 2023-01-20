@@ -10,7 +10,7 @@ async function getCalenderDays(page: Page): Promise<CalendarDay[]> {
                     .replace('calendar-day-', '')
 
                 return {
-                    date: new Date(Date.parse(dateAsString)),
+                    date: Date.parse(dateAsString),
                     booked: JSON.parse(div.getAttribute('data-is-day-blocked') || ''),
                 }
             })
@@ -29,8 +29,7 @@ function removeDuplicates(calendarDays: CalendarDay[]) {
     })
 }
 
-const scrapeQuarteira = async () => {
-    const bookings: string[] = []
+const scrapeQuarteira = async (): Promise<CalendarDay[]> => {
     let calendarDays: CalendarDay[] = []
 
     const browser = await puppeteer.launch({
@@ -63,7 +62,7 @@ const scrapeQuarteira = async () => {
             calendarDays = removeDuplicates(calendarDays)
         }
 
-        calendarDays.map(d => functions.logger.debug(d.date))
+        calendarDays.map(d => functions.logger.debug(new Date(d.date)))
     } catch (e) {
         functions.logger.error(e)
     } finally {
@@ -74,7 +73,7 @@ const scrapeQuarteira = async () => {
         functions.logger.info('Done with scrape')
     }
 
-    return bookings
+    return calendarDays
 }
 
 export default scrapeQuarteira
