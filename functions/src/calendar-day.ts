@@ -1,4 +1,4 @@
 export interface CalendarDay {
-    booked?: boolean
-    date?: Date
+    booked: boolean
+    date: Date
 }
