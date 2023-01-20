@@ -1,9 +1,11 @@
 import {Booking} from './booking'
 import {CalendarDay} from './calendar-day'
 import {BookingStatus} from './booking-status'
+import {initializeApp} from 'firebase-admin'
 import {getFirestore} from 'firebase-admin/firestore'
 
 async function saveBookings(bookings: Partial<Booking>[]) {
+    initializeApp()
     const firestore = getFirestore()
     await bookings.forEach(b => firestore.collection('bookings').add(b))
     await firestore.terminate()
