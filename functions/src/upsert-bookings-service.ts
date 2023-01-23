@@ -40,7 +40,7 @@ async function saveBookings(bookings: Booking[]): Promise<Booking[]> {
     const bookingsInDb = await getAllBookingsFromDb(firestore)
     bookings = filterNewBookings(bookings, bookingsInDb)
     await bookings.forEach(b => firestore.collection('bookings').add(b))
-    await firestore.terminate()
+    // await firestore.terminate()
 
     return bookings
 }
