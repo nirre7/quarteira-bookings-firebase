@@ -3,7 +3,8 @@ import {CalendarDay} from './calendar-day'
 import {BookingStatus} from './booking-status'
 import {getFirestore} from 'firebase-admin/firestore'
 import {isEqual, isFuture} from 'date-fns'
-import {firestore, initializeApp} from 'firebase-admin'
+import {firestore} from 'firebase-admin'
+import {getApps, initializeApp} from 'firebase-admin/app'
 import Timestamp = firestore.Timestamp
 
 function filterNewBookings(bookings: Booking[], bookingsInDb: Booking[]) {
@@ -31,7 +32,9 @@ async function getAllBookingsFromDb(firestore: FirebaseFirestore.Firestore): Pro
 }
 
 async function saveBookings(bookings: Booking[]): Promise<Booking[]> {
-    initializeApp()
+    if (!getApps().length) {
+        initializeApp()
+    }
     const firestore = getFirestore()
 
     const bookingsInDb = await getAllBookingsFromDb(firestore)
