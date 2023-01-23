@@ -15,11 +15,14 @@ exports.scrape = functions
         res.type('html').send(bookings.map(b => b.start).join('<br>'))
     })
 
-// TODO setup scheduled job
-// exports.scrapingSchedule = functions.pubsub
-//     .schedule('06:00')
-//     .timeZone('Europe/Stockholm')
-//     .onRun(async context => {
-//       await scrapeQuarteria()
-//       return null
-//     })
+exports.scrapingSchedule = functions.pubsub
+    .schedule('06:00')
+    .timeZone('Europe/Stockholm')
+    .onRun(async context => {
+        const calendarDays = await scrapeQuarteria()
+        let bookings = createBookingsFromCalenderDays(calendarDays)
+        bookings = await saveBookings(bookings)
+        const datesFromNewBookings = bookings.map(b => `${b.start.toDateString()} - ${b.end.toDateString()}`).join(', ')
+        functions.logger.info(`Saved ${bookings.length} bookings. ${datesFromNewBookings}`)
+        return null
+    })
