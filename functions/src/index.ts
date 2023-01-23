@@ -10,9 +10,9 @@ exports.scrape = functions
     .region('europe-west3')
     .https.onRequest(async (req, res) => {
         const calendarDays = await scrapeQuarteria()
-        const bookings = createBookingsFromCalenderDays(calendarDays)
-        await saveBookings(bookings)
-        res.type('html').send(bookings.join('<br>'))
+        let bookings = createBookingsFromCalenderDays(calendarDays)
+        bookings = await saveBookings(bookings)
+        res.type('html').send(bookings.map(b => b.start).join('<br>'))
     })
 
 // TODO setup scheduled job

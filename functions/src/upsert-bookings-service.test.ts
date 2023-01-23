@@ -1,6 +1,8 @@
-import {createBookingsFromCalenderDays} from './upsert-bookings-service'
+import {createBookingsFromCalenderDays, exportedForTesting} from './upsert-bookings-service'
 import {CalendarDay} from './calendar-day'
 import {BookingStatus} from './booking-status'
+import {Booking} from './booking'
+import * as admin from 'firebase-admin'
 
 const DATE_2023_01_16 = 1673827200000
 const DATE_2023_01_17 = 1673913600000
@@ -9,6 +11,11 @@ const DATE_2023_01_19 = 1674086400000
 const DATE_2023_01_20 = 1674172800000
 const DATE_2023_01_21 = 1674259200000
 const DATE_2023_01_22 = 1674345600000
+const DATE_2033_01_16 = 1989446400000
+const DATE_2033_01_17 = 1989532800000
+const DATE_2033_01_19 = 1989705600000
+const DATE_2033_01_20 = 1989792000000
+const DATE_2033_01_21 = 1989878400000
 
 describe('Create bookings from the airbnb calendar', () => {
     test('Can create bookings 1', () => {
@@ -148,5 +155,214 @@ describe('Create bookings from the airbnb calendar', () => {
         expect(booking2.end).toEqual(new Date(DATE_2023_01_22))
         expect(booking2.year).toEqual(2023)
         expect(booking2.status).toEqual(BookingStatus.ACTIVE)
+    })
+
+    test('Filter bookings, only "future" bookings', () => {
+        const {filterNewBookings} = exportedForTesting
+
+        const bookings: Booking[] = [
+            {
+                start: new Date(DATE_2023_01_16),
+                end: new Date(DATE_2023_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2023,
+                created: new Date(DATE_2023_01_16),
+                modified: new Date(DATE_2023_01_16),
+            },
+        ]
+
+        const filteredBookings = filterNewBookings(bookings, bookings)
+
+        expect(filteredBookings.length).toBe(0)
+    })
+
+    test('Filter bookings - same bookings in scrape and db', () => {
+        const {filterNewBookings} = exportedForTesting
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+
+        const bookingsFromDb: Booking[] = [
+            {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
+
+        expect(filteredBookings.length).toBe(0)
+    })
+
+    test('Filter bookings - new bookings from scrape', () => {
+        const {filterNewBookings} = exportedForTesting
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb: Booking[] = [
+            {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_19),
+                modified: new Date(DATE_2033_01_19),
+            },
+        ]
+
+        const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
+
+        expect(filteredBookings.length).toBe(1)
+    })
+
+    test('Filter bookings - new bookings from scrape 2', () => {
+        const {filterNewBookings} = exportedForTesting
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb: Booking[] = []
+
+        const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
+
+        expect(filteredBookings.length).toBe(1)
+    })
+
+    test('Filter bookings - new bookings from scrape 3', () => {
+        const {filterNewBookings} = exportedForTesting
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb: Booking[] = [
+            {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_19),
+                modified: new Date(DATE_2033_01_19),
+            },
+            {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
+
+        expect(filteredBookings.length).toBe(0)
+    })
+
+    test('Filter bookings - new bookings from scrape 4', () => {
+        const {filterNewBookings} = exportedForTesting
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+            {
+                start: new Date(DATE_2033_01_20),
+                end: new Date(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb: Booking[] = [
+            {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_19),
+                modified: new Date(DATE_2033_01_19),
+            },
+            {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
+
+        expect(filteredBookings.length).toBe(1)
     })
 })

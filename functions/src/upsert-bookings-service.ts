@@ -1,16 +1,26 @@
 import {Booking} from './booking'
 import {CalendarDay} from './calendar-day'
 import {BookingStatus} from './booking-status'
-import {initializeApp} from 'firebase-admin'
 import {getFirestore} from 'firebase-admin/firestore'
 import {isEqual, isFuture} from 'date-fns'
+import {firestore, initializeApp} from 'firebase-admin'
+import Timestamp = firestore.Timestamp
 
-async function filterNewBookings(bookings: Booking[], bookingsInDb: Booking[]) {
+function filterNewBookings(bookings: Booking[], bookingsInDb: Booking[]) {
     return bookings
-        .filter(b => isFuture(b.start))
+        .filter(b => isFuture(new Date(b.start)))
         .filter(b => {
-            bookingsInDb.find(bInDb => !isEqual(bInDb.start, b.start) && !isEqual(bInDb.end, b.end))
+            return !bookingsInDb.some(bInDb => {
+                const startInDb = (bInDb.start as unknown as Timestamp).toDate()
+                const endInDb = (bInDb.end as unknown as Timestamp).toDate()
+
+                return isEqual(b.start, startInDb) && isEqual(b.end, endInDb)
+            })
         })
+}
+
+export const exportedForTesting = {
+    filterNewBookings,
 }
 
 async function getAllBookingsFromDb(firestore: FirebaseFirestore.Firestore): Promise<Booking[]> {
@@ -20,15 +30,16 @@ async function getAllBookingsFromDb(firestore: FirebaseFirestore.Firestore): Pro
     return bookingsInDb
 }
 
-async function saveBookings(bookings: Booking[]) {
+async function saveBookings(bookings: Booking[]): Promise<Booking[]> {
     initializeApp()
     const firestore = getFirestore()
 
     const bookingsInDb = await getAllBookingsFromDb(firestore)
-    bookings = await filterNewBookings(bookings, bookingsInDb)
+    bookings = filterNewBookings(bookings, bookingsInDb)
     await bookings.forEach(b => firestore.collection('bookings').add(b))
-
     await firestore.terminate()
+
+    return bookings
 }
 
 function createBookingsFromCalenderDays(calendarDays: CalendarDay[]): Booking[] {
