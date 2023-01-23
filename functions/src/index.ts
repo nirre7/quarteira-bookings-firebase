@@ -15,7 +15,9 @@ exports.scrape = functions
         res.type('html').send(bookings.map(b => b.start).join('<br>'))
     })
 
-exports.scrapingSchedule = functions.pubsub
+exports.scrapingSchedule = functions
+    .region('europe-west3')
+    .pubsub
     .schedule('06:00')
     .timeZone('Europe/Stockholm')
     .onRun(async context => {
