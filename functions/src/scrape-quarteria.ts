@@ -36,6 +36,15 @@ const scrapeQuarteira = async (): Promise<CalendarDay[]> => {
         headless: true,
         timeout: 20000,
         ignoreHTTPSErrors: true,
+        args: [
+            '--disable-gpu',
+            '--disable-dev-shm-usage',
+            '--disable-setuid-sandbox',
+            '--no-first-run',
+            '--no-sandbox',
+            '--no-zygote',
+            '--window-size=1280,720',
+        ],
     })
 
     try {
