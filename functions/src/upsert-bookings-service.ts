@@ -6,6 +6,7 @@ import {isEqual, isFuture} from 'date-fns'
 import {firestore} from 'firebase-admin'
 import {getApps, initializeApp} from 'firebase-admin/app'
 import Timestamp = firestore.Timestamp
+import {cloneDeep} from 'lodash'
 
 function filterNewBookings(bookings: Booking[], bookingsInDb: Booking[]) {
     return bookings
@@ -66,13 +67,13 @@ function createBookingsFromCalenderDays(calendarDays: CalendarDay[]): Booking[] 
         if (booking?.start && !booking?.end) {
             if (!day.booked) {
                 booking.end = new Date(calendarDaysArray[index - 1].date)
-                bookings.push(structuredClone(booking) as Booking)
+                bookings.push(cloneDeep(booking) as Booking)
                 booking = {}
             }
 
             if (booking?.start && calendarDaysArray.length == index + 1) {
                 booking.end = calendarDate
-                bookings.push(structuredClone(booking) as Booking)
+                bookings.push(cloneDeep(booking) as Booking)
                 booking = {}
             }
         }

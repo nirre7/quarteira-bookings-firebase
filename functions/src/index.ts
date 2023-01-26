@@ -13,7 +13,10 @@ import {createBookingsFromCalenderDays, saveBookings} from './upsert-bookings-se
 //         const calendarDays = await scrapeQuarteria()
 //         let bookings = createBookingsFromCalenderDays(calendarDays)
 //         bookings = await saveBookings(bookings)
-//         res.type('html').send(bookings.map(b => b.start).join('<br>'))
+// eslint-disable-next-line max-len
+//         const datesFromNewBookings = bookings.map(b => `${b.start.toDateString()} - ${b.end.toDateString()}`).join(', ')
+//         functions.logger.info(`Saved ${bookings.length} bookings. ${datesFromNewBookings}`)
+//         res.type('html').send(datesFromNewBookings)
 //     })
 
 exports.scrapingSchedule = functions
