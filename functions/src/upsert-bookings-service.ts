@@ -5,45 +5,65 @@ import {getFirestore} from 'firebase-admin/firestore'
 import {isEqual, isFuture} from 'date-fns'
 import {firestore} from 'firebase-admin'
 import {getApps, initializeApp} from 'firebase-admin/app'
-import Timestamp = firestore.Timestamp
 import {cloneDeep} from 'lodash'
+import Timestamp = firestore.Timestamp
+import QuerySnapshot = firestore.QuerySnapshot
+import DocumentData = firestore.DocumentData
+import Firestore = firestore.Firestore
 
-function filterNewBookings(bookings: Booking[], bookingsInDb: Booking[]) {
+function filterNewBookings(bookings: Booking[], bookingsInDb: QuerySnapshot<FirebaseFirestore.DocumentData>) {
     return bookings
         .filter(b => isFuture(new Date(b.start)))
         .filter(b => {
-            return !bookingsInDb.some(bInDb => {
-                const startInDb = (bInDb.start as unknown as Timestamp).toDate()
-                const endInDb = (bInDb.end as unknown as Timestamp).toDate()
+            return !bookingsInDb.docs.some(bInDb => {
+                const startInDb = ((bInDb.data() as Booking).start as unknown as Timestamp).toDate()
+                const endInDb = ((bInDb.data() as Booking).end as unknown as Timestamp).toDate()
 
-                return isEqual(b.start, startInDb) && isEqual(b.end, endInDb)
+                return isEqual(b.start, startInDb) &&
+                    isEqual(b.end, endInDb) &&
+                    bInDb.data().status !== BookingStatus.REMOVED
             })
         })
 }
 
 export const exportedForTesting = {
     filterNewBookings,
+    setBookingsToRemovedIfNeeded,
 }
 
-async function getAllBookingsFromDb(firestore: FirebaseFirestore.Firestore): Promise<Booking[]> {
-    const dbSnapshot = await firestore.collection('bookings').get()
-    const bookingsInDb: Booking[] = []
-    dbSnapshot.forEach(doc => bookingsInDb.push(doc.data() as Booking))
-    return bookingsInDb
+async function getAllBookingsFromDb(firestore: Firestore): Promise<QuerySnapshot<DocumentData>> {
+    return await firestore.collection('bookings').get()
 }
 
-async function saveBookings(bookings: Booking[]): Promise<Booking[]> {
+// eslint-disable-next-line max-len
+async function setBookingsToRemovedIfNeeded(bookingsInDb: QuerySnapshot<DocumentData>, scrapedBookings: Booking[]): Promise<void> {
+    const bookingsToBeSetToRemoved = bookingsInDb.docs
+        .filter(b => (b.data() as Booking).status !== BookingStatus.REMOVED)
+        .filter(b => {
+            const startInDb = ((b.data() as Booking).start as unknown as Timestamp).toDate()
+            const endInDb = ((b.data() as Booking).end as unknown as Timestamp).toDate()
+
+            return !scrapedBookings.some(sb => isEqual(sb.start, startInDb) && isEqual(sb.end, endInDb))
+        })
+
+    for (const booking of bookingsToBeSetToRemoved) {
+        await booking.ref.update({status: BookingStatus.REMOVED})
+    }
+}
+
+async function saveBookings(scrapedBookings: Booking[]): Promise<Booking[]> {
     if (!getApps().length) {
         initializeApp()
     }
     const firestore = getFirestore()
 
     const bookingsInDb = await getAllBookingsFromDb(firestore)
-    bookings = filterNewBookings(bookings, bookingsInDb)
-    await bookings.forEach(b => firestore.collection('bookings').add(b))
-    // await firestore.terminate()
+    await setBookingsToRemovedIfNeeded(bookingsInDb, scrapedBookings)
+    const newBookings = filterNewBookings(scrapedBookings, bookingsInDb)
 
-    return bookings
+    await newBookings.forEach(b => firestore.collection('bookings').add(b))
+
+    return newBookings
 }
 
 function createBookingsFromCalenderDays(calendarDays: CalendarDay[]): Booking[] {

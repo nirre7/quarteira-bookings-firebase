@@ -3,6 +3,8 @@ import {CalendarDay} from './calendar-day'
 import {BookingStatus} from './booking-status'
 import {Booking} from './booking'
 import * as admin from 'firebase-admin'
+import {firestore} from 'firebase-admin'
+import QuerySnapshot = firestore.QuerySnapshot
 
 const DATE_2023_01_16 = 1673827200000
 const DATE_2023_01_17 = 1673913600000
@@ -171,7 +173,9 @@ describe('Create bookings from the airbnb calendar', () => {
             },
         ]
 
-        const filteredBookings = filterNewBookings(bookings, bookings)
+        const bookingsFromDb = {docs: []} as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        const filteredBookings = filterNewBookings(bookings, bookingsFromDb)
 
         expect(filteredBookings.length).toBe(0)
     })
@@ -190,21 +194,26 @@ describe('Create bookings from the airbnb calendar', () => {
             },
         ]
 
-
-        const bookingsFromDb: Booking[] = [
-            {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
-                status: BookingStatus.ACTIVE,
-                year: 2033,
-                created: new Date(DATE_2033_01_16),
-                modified: new Date(DATE_2033_01_16),
-            },
-        ]
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_16),
+                            modified: new Date(DATE_2033_01_16),
+                        }
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
 
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
@@ -225,20 +234,26 @@ describe('Create bookings from the airbnb calendar', () => {
             },
         ]
 
-        const bookingsFromDb: Booking[] = [
-            {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
-                status: BookingStatus.ACTIVE,
-                year: 2033,
-                created: new Date(DATE_2033_01_19),
-                modified: new Date(DATE_2033_01_19),
-            },
-        ]
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
 
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
@@ -259,7 +274,7 @@ describe('Create bookings from the airbnb calendar', () => {
             },
         ]
 
-        const bookingsFromDb: Booking[] = []
+        const bookingsFromDb = {docs: []} as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
 
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
@@ -280,32 +295,42 @@ describe('Create bookings from the airbnb calendar', () => {
             },
         ]
 
-        const bookingsFromDb: Booking[] = [
-            {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
-                status: BookingStatus.ACTIVE,
-                year: 2033,
-                created: new Date(DATE_2033_01_19),
-                modified: new Date(DATE_2033_01_19),
-            },
-            {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
-                status: BookingStatus.ACTIVE,
-                year: 2033,
-                created: new Date(DATE_2033_01_16),
-                modified: new Date(DATE_2033_01_16),
-            },
-        ]
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                },
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_16),
+                            modified: new Date(DATE_2033_01_16),
+                        }
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
 
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
@@ -334,26 +359,55 @@ describe('Create bookings from the airbnb calendar', () => {
             },
         ]
 
-        const bookingsFromDb: Booking[] = [
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                },
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_16),
+                            modified: new Date(DATE_2033_01_16),
+                        }
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
+
+        expect(filteredBookings.length).toBe(1)
+    })
+
+    test('Filter bookings - new bookings from scrape 5', () => {
+        const {filterNewBookings} = exportedForTesting
+
+        const scrapedBookings: Booking[] = [
             {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
-                status: BookingStatus.ACTIVE,
-                year: 2033,
-                created: new Date(DATE_2033_01_19),
-                modified: new Date(DATE_2033_01_19),
-            },
-            {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_17),
                 status: BookingStatus.ACTIVE,
                 year: 2033,
                 created: new Date(DATE_2033_01_16),
@@ -361,8 +415,256 @@ describe('Create bookings from the airbnb calendar', () => {
             },
         ]
 
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                            status: BookingStatus.REMOVED,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
         expect(filteredBookings.length).toBe(1)
+    })
+
+    test('Set bookings to removed if needed 1', () => {
+        const {setBookingsToRemovedIfNeeded} = exportedForTesting
+        const mockUpdate = jest.fn(obj => obj.status)
+
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.REMOVED,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                    ref: {
+                        update: mockUpdate,
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        setBookingsToRemovedIfNeeded(bookingsFromDb, [])
+
+        expect(mockUpdate.mock.calls).toHaveLength(0)
+    })
+
+    test('Set bookings to removed if needed 2', () => {
+        const {setBookingsToRemovedIfNeeded} = exportedForTesting
+        const mockUpdate = jest.fn(obj => obj.status)
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2023_01_20),
+                end: new Date(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                    ref: {
+                        update: mockUpdate,
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        setBookingsToRemovedIfNeeded(bookingsFromDb, scrapedBookings)
+
+        expect(mockUpdate.mock.calls).toHaveLength(1)
+    })
+
+    test('Set bookings to removed if needed 3', () => {
+        const {setBookingsToRemovedIfNeeded} = exportedForTesting
+        const mockUpdate = jest.fn(obj => obj.status)
+
+        const scrapedBookings: Booking[] = []
+
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                    ref: {
+                        update: mockUpdate,
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        setBookingsToRemovedIfNeeded(bookingsFromDb, scrapedBookings)
+
+        expect(mockUpdate.mock.calls).toHaveLength(1)
+    })
+
+    test('Set bookings to removed if needed 4', () => {
+        const {setBookingsToRemovedIfNeeded} = exportedForTesting
+        const mockUpdate = jest.fn(obj => obj.status)
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_19),
+                end: new Date(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                    ref: {
+                        update: mockUpdate,
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        setBookingsToRemovedIfNeeded(bookingsFromDb, scrapedBookings)
+
+        expect(mockUpdate.mock.calls).toHaveLength(0)
+    })
+
+    test('Set bookings to removed if needed 5', () => {
+        const {setBookingsToRemovedIfNeeded} = exportedForTesting
+        const mockUpdate = jest.fn(obj => obj.status)
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+            {
+                start: new Date(DATE_2033_01_20),
+                end: new Date(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_20),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                    ref: {
+                        update: mockUpdate,
+                    },
+                },
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_16),
+                            modified: new Date(DATE_2033_01_16),
+                        }
+                    },
+                    ref: {
+                        update: mockUpdate,
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        setBookingsToRemovedIfNeeded(bookingsFromDb, scrapedBookings)
+
+        expect(mockUpdate.mock.calls).toHaveLength(0)
     })
 })
