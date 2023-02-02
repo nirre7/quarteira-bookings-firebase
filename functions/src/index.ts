@@ -26,7 +26,7 @@ exports.scrapingSchedule = functions
     })
     .region('europe-west3')
     .pubsub
-    .schedule('every day 06:00')
+    .schedule('0 */6 * * *')
     .timeZone('Europe/Stockholm')
     .onRun(async context => {
         const calendarDays = await scrapeQuarteria()
