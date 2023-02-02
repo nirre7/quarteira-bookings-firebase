@@ -38,7 +38,7 @@ async function getAllBookingsFromDb(firestore: Firestore): Promise<QuerySnapshot
 // eslint-disable-next-line max-len
 async function setBookingsToRemovedIfNeeded(bookingsInDb: QuerySnapshot<DocumentData>, scrapedBookings: Booking[]): Promise<void> {
     const bookingsToBeSetToRemoved = bookingsInDb.docs
-        .filter(b => (b.data() as Booking).status !== BookingStatus.REMOVED)
+        .filter(b => (b.data() as Booking).status === BookingStatus.ACTIVE)
         .filter(b => {
             const startInDb = ((b.data() as Booking).start as unknown as Timestamp).toDate()
             const endInDb = ((b.data() as Booking).end as unknown as Timestamp).toDate()
