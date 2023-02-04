@@ -15,14 +15,14 @@ function filterNewBookings(bookings: Booking[], bookingsInDb: QuerySnapshot<Fire
     return bookings
         .filter(b => isFuture(new Date(b.start)))
         .filter(b => {
-            return !bookingsInDb.docs.some(bInDb => {
-                const startInDb = ((bInDb.data() as Booking).start as unknown as Timestamp).toDate()
-                const endInDb = ((bInDb.data() as Booking).end as unknown as Timestamp).toDate()
+            return !bookingsInDb.docs
+                .filter(bInDb => bInDb.data()?.status === BookingStatus.ACTIVE)
+                .some(bInDb => {
+                    const startInDb = ((bInDb.data() as Booking).start as unknown as Timestamp).toDate()
+                    const endInDb = ((bInDb.data() as Booking).end as unknown as Timestamp).toDate()
 
-                return isEqual(b.start, startInDb) &&
-                    isEqual(b.end, endInDb) &&
-                    bInDb.data().status !== BookingStatus.REMOVED
-            })
+                    return isEqual(b.start, startInDb) && isEqual(b.end, endInDb)
+                })
         })
 }
 
