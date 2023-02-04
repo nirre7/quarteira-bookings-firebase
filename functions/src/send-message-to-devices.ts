@@ -15,10 +15,12 @@ async function sendMessageToDevices(numberOfNewBookings: number) {
 }
 
 async function getToken(): Promise<DeviceToken> {
-    return await firestore()
+    const documentSnapshot = await firestore()
         .collection('deviceTokens')
         .doc('niso@niso.com')
-        .get() as unknown as DeviceToken
+        .get()
+
+    return documentSnapshot.data() as DeviceToken
 }
 
 export {sendMessageToDevices}
