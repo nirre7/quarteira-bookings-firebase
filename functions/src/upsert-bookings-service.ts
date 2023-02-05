@@ -4,7 +4,6 @@ import {BookingStatus} from './booking-status'
 import {getFirestore} from 'firebase-admin/firestore'
 import {isEqual, isFuture} from 'date-fns'
 import {firestore} from 'firebase-admin'
-import {getApps, initializeApp} from 'firebase-admin/app'
 import {cloneDeep} from 'lodash'
 import Timestamp = firestore.Timestamp
 import QuerySnapshot = firestore.QuerySnapshot
@@ -52,9 +51,6 @@ async function setBookingsToRemovedIfNeeded(bookingsInDb: QuerySnapshot<Document
 }
 
 async function saveBookings(scrapedBookings: Booking[]): Promise<Booking[]> {
-    if (!getApps().length) {
-        initializeApp()
-    }
     const firestore = getFirestore()
 
     const bookingsInDb = await getAllBookingsFromDb(firestore)

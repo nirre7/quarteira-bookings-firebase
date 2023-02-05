@@ -2,18 +2,26 @@ import * as functions from 'firebase-functions'
 import scrapeQuarteria from './scrape-quarteria'
 import {createBookingsFromCalenderDays, saveBookings} from './upsert-bookings-service'
 import {sendMessageToDevices} from './send-message-to-devices'
+import {getApps, initializeApp} from 'firebase-admin/app'
+import {credential} from 'firebase-admin'
+
+if (!getApps().length) {
+    initializeApp({
+        credential: credential.applicationDefault(),
+    })
+}
 
 // TODO only for dev
-exports.scrape = functions
-    .runWith({
-        timeoutSeconds: 120,
-        memory: '512MB' || '2GB',
-    })
-    .region('europe-west3')
-    .https.onRequest(async (req, res) => {
-        const datesFromNewBookings = await scrapeAndSaveNewBookings()
-        res.type('html').send(datesFromNewBookings)
-    })
+// exports.scrape = functions
+//     .runWith({
+//         timeoutSeconds: 120,
+//         memory: '512MB' || '2GB',
+//     })
+//     .region('europe-west3')
+//     .https.onRequest(async (req, res) => {
+//         const datesFromNewBookings = await scrapeAndSaveNewBookings()
+//         res.type('html').send(datesFromNewBookings)
+//     })
 
 exports.scrapingSchedule = functions
     .runWith({
