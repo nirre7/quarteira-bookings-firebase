@@ -38,6 +38,7 @@ async function getAllBookingsFromDb(firestore: Firestore): Promise<QuerySnapshot
 async function setBookingsToRemovedIfNeeded(bookingsInDb: QuerySnapshot<DocumentData>, scrapedBookings: Booking[]): Promise<void> {
     const bookingsToBeSetToRemoved = bookingsInDb.docs
         .filter(b => (b.data() as Booking).status === BookingStatus.ACTIVE)
+        .filter(b => isFuture(((b.data() as Booking).start as unknown as Timestamp).toDate()))
         .filter(b => {
             const startInDb = ((b.data() as Booking).start as unknown as Timestamp).toDate()
             const endInDb = ((b.data() as Booking).end as unknown as Timestamp).toDate()
@@ -57,7 +58,7 @@ async function saveBookings(scrapedBookings: Booking[]): Promise<Booking[]> {
     await setBookingsToRemovedIfNeeded(bookingsInDb, scrapedBookings)
     const newBookings = filterNewBookings(scrapedBookings, bookingsInDb)
 
-    await newBookings.forEach(b => firestore.collection('bookings').add(b))
+    // await newBookings.forEach(b => firestore.collection('bookings').add(b))
 
     return newBookings
 }

@@ -510,7 +510,7 @@ describe('Create bookings from the airbnb calendar', () => {
 
         const scrapedBookings: Booking[] = [
             {
-                start: new Date(fiveDaysInTheFuture),
+                start: new Date(DATE_2033_01_16),
                 end: new Date(DATE_2033_01_21),
                 status: BookingStatus.ACTIVE,
                 year: 2033,
