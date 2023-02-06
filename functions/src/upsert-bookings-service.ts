@@ -59,7 +59,7 @@ async function saveBookings(scrapedBookings: Booking[]): Promise<Booking[]> {
     await setBookingsToRemovedIfNeeded(bookingsInDb, scrapedBookings)
     const newBookings = filterNewBookings(scrapedBookings, bookingsInDb)
 
-    // await newBookings.forEach(b => firestore.collection('bookings').add(b))
+    await newBookings.forEach(b => firestore.collection('bookings').add(b))
 
     return newBookings
 }
