@@ -2,7 +2,7 @@ import {Booking} from './booking'
 import {CalendarDay} from './calendar-day'
 import {BookingStatus} from './booking-status'
 import {getFirestore} from 'firebase-admin/firestore'
-import {isAfter, isEqual, isFuture} from 'date-fns'
+import {isAfter, isEqual, isFuture, isWithinInterval} from 'date-fns'
 import {firestore} from 'firebase-admin'
 import {cloneDeep} from 'lodash'
 import Timestamp = firestore.Timestamp
@@ -20,7 +20,8 @@ function filterNewBookings(bookings: Booking[], bookingsInDb: QuerySnapshot<Fire
                     const startInDb = ((bInDb.data() as Booking).start as unknown as Timestamp).toDate()
                     const endInDb = ((bInDb.data() as Booking).end as unknown as Timestamp).toDate()
 
-                    return isEqual(b.start, startInDb) && isEqual(b.end, endInDb)
+                    return isWithinInterval(b.start, {start: startInDb, end: endInDb}) &&
+                        isWithinInterval(b.end, {start: startInDb, end: endInDb})
                 })
         })
 }

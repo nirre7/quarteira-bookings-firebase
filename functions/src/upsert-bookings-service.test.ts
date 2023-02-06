@@ -250,6 +250,46 @@ describe('Create bookings from the airbnb calendar', () => {
         expect(filteredBookings.length).toBe(0)
     })
 
+    test('Filter bookings - scrape is within interval of booking in db', () => {
+        const {filterNewBookings} = exportedForTesting
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_17),
+                end: new Date(DATE_2033_01_20),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_16),
+                            modified: new Date(DATE_2033_01_16),
+                        }
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
+
+        expect(filteredBookings.length).toBe(0)
+    })
+
     test('Filter bookings - new bookings from scrape', () => {
         const {filterNewBookings} = exportedForTesting
 
@@ -428,7 +468,7 @@ describe('Create bookings from the airbnb calendar', () => {
 
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
-        expect(filteredBookings.length).toBe(1)
+        expect(filteredBookings.length).toBe(0)
     })
 
     test('Filter bookings - new bookings from scrape 5', () => {
