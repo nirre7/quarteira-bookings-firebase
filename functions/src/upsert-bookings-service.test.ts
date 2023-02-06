@@ -5,14 +5,18 @@ import {Booking} from './booking'
 import * as admin from 'firebase-admin'
 import {firestore} from 'firebase-admin'
 import QuerySnapshot = firestore.QuerySnapshot
+import {addDays, subDays} from 'date-fns'
 
-const DATE_2023_01_16 = 1673827200000
-const DATE_2023_01_17 = 1673913600000
-const DATE_2023_01_18 = 1674000000000
-const DATE_2023_01_19 = 1674086400000
-const DATE_2023_01_20 = 1674172800000
-const DATE_2023_01_21 = 1674259200000
-const DATE_2023_01_22 = 1674345600000
+const today = Date.now()
+const dayBeforeYesterday = subDays(today, 2).getTime()
+const yesterday = subDays(today, 1).getTime()
+const tomorrow = addDays(today, 1).getTime()
+const twoDaysInTheFuture = addDays(today, 2).getTime()
+const threeDaysInTheFuture = addDays(today, 3).getTime()
+const fourDaysInTheFuture = addDays(today, 4).getTime()
+const fiveDaysInTheFuture = addDays(today, 5).getTime()
+const sixDaysInTheFuture = addDays(today, 6).getTime()
+const sevenDaysInTheFuture = addDays(today, 7).getTime()
 const DATE_2033_01_16 = 1989446400000
 const DATE_2033_01_17 = 1989532800000
 const DATE_2033_01_19 = 1989705600000
@@ -20,15 +24,15 @@ const DATE_2033_01_20 = 1989792000000
 const DATE_2033_01_21 = 1989878400000
 
 describe('Create bookings from the airbnb calendar', () => {
-    test('Can create bookings 1', () => {
+    test('Can create bookings in future 1', () => {
         const calendarDays: CalendarDay[] = [
-            {date: DATE_2023_01_16, booked: false},
-            {date: DATE_2023_01_17, booked: true},
-            {date: DATE_2023_01_18, booked: true},
-            {date: DATE_2023_01_19, booked: false},
-            {date: DATE_2023_01_20, booked: true},
-            {date: DATE_2023_01_21, booked: true},
-            {date: DATE_2023_01_22, booked: true},
+            {date: tomorrow, booked: false},
+            {date: twoDaysInTheFuture, booked: true},
+            {date: threeDaysInTheFuture, booked: true},
+            {date: fourDaysInTheFuture, booked: false},
+            {date: fiveDaysInTheFuture, booked: true},
+            {date: sixDaysInTheFuture, booked: true},
+            {date: sevenDaysInTheFuture, booked: true},
         ]
 
         const bookings = createBookingsFromCalenderDays(calendarDays)
@@ -37,47 +41,47 @@ describe('Create bookings from the airbnb calendar', () => {
 
         expect(bookings.length).toBe(2)
 
-        expect(booking1.start).toEqual(new Date(DATE_2023_01_17))
-        expect(booking1.end).toEqual(new Date(DATE_2023_01_18))
+        expect(booking1.start).toEqual(new Date(twoDaysInTheFuture))
+        expect(booking1.end).toEqual(new Date(threeDaysInTheFuture))
         expect(booking1.year).toEqual(2023)
         expect(booking1.status).toEqual(BookingStatus.ACTIVE)
 
-        expect(booking2.start).toEqual(new Date(DATE_2023_01_20))
-        expect(booking2.end).toEqual(new Date(DATE_2023_01_22))
+        expect(booking2.start).toEqual(new Date(fiveDaysInTheFuture))
+        expect(booking2.end).toEqual(new Date(sevenDaysInTheFuture))
         expect(booking2.year).toEqual(2023)
         expect(booking2.status).toEqual(BookingStatus.ACTIVE)
     })
 
-    test('Can create bookings 2', () => {
+    test('Can create bookings in future 2', () => {
         const calendarDays: CalendarDay[] = [
-            {date: DATE_2023_01_16, booked: true},
-            {date: DATE_2023_01_17, booked: true},
-            {date: DATE_2023_01_18, booked: true},
-            {date: DATE_2023_01_19, booked: true},
-            {date: DATE_2023_01_20, booked: true},
-            {date: DATE_2023_01_21, booked: true},
-            {date: DATE_2023_01_22, booked: true},
+            {date: tomorrow, booked: true},
+            {date: twoDaysInTheFuture, booked: true},
+            {date: threeDaysInTheFuture, booked: true},
+            {date: fourDaysInTheFuture, booked: true},
+            {date: fiveDaysInTheFuture, booked: true},
+            {date: sixDaysInTheFuture, booked: true},
+            {date: sevenDaysInTheFuture, booked: true},
         ]
 
         const bookings = createBookingsFromCalenderDays(calendarDays)
         const booking = bookings[0]
 
         expect(bookings.length).toBe(1)
-        expect(booking.start).toEqual(new Date(DATE_2023_01_16))
-        expect(booking.end).toEqual(new Date(DATE_2023_01_22))
+        expect(booking.start).toEqual(new Date(tomorrow))
+        expect(booking.end).toEqual(new Date(sevenDaysInTheFuture))
         expect(booking.year).toEqual(2023)
         expect(booking.status).toEqual(BookingStatus.ACTIVE)
     })
 
-    test('Can create bookings 3', () => {
+    test('Can create bookings in future 3', () => {
         const calendarDays: CalendarDay[] = [
-            {date: DATE_2023_01_16, booked: true},
-            {date: DATE_2023_01_17, booked: true},
-            {date: DATE_2023_01_18, booked: true},
-            {date: DATE_2023_01_19, booked: false},
-            {date: DATE_2023_01_20, booked: false},
-            {date: DATE_2023_01_21, booked: true},
-            {date: DATE_2023_01_22, booked: false},
+            {date: tomorrow, booked: true},
+            {date: twoDaysInTheFuture, booked: true},
+            {date: threeDaysInTheFuture, booked: true},
+            {date: fourDaysInTheFuture, booked: false},
+            {date: fiveDaysInTheFuture, booked: false},
+            {date: sixDaysInTheFuture, booked: true},
+            {date: sevenDaysInTheFuture, booked: false},
         ]
 
         const bookings = createBookingsFromCalenderDays(calendarDays)
@@ -85,62 +89,62 @@ describe('Create bookings from the airbnb calendar', () => {
         const booking2 = bookings[1]
 
         expect(bookings.length).toBe(2)
-        expect(booking1.start).toEqual(new Date(DATE_2023_01_16))
-        expect(booking1.end).toEqual(new Date(DATE_2023_01_18))
+        expect(booking1.start).toEqual(new Date(tomorrow))
+        expect(booking1.end).toEqual(new Date(threeDaysInTheFuture))
         expect(booking1.year).toEqual(2023)
         expect(booking1.status).toEqual(BookingStatus.ACTIVE)
 
-        expect(booking2.start).toEqual(new Date(DATE_2023_01_21))
-        expect(booking2.end).toEqual(new Date(DATE_2023_01_21))
+        expect(booking2.start).toEqual(new Date(sixDaysInTheFuture))
+        expect(booking2.end).toEqual(new Date(sixDaysInTheFuture))
         expect(booking2.year).toEqual(2023)
         expect(booking2.status).toEqual(BookingStatus.ACTIVE)
     })
 
-    test('Can create bookings 4', () => {
+    test('Can create bookings in future 4', () => {
         const calendarDays: CalendarDay[] = [
-            {date: DATE_2023_01_16, booked: false},
-            {date: DATE_2023_01_17, booked: false},
-            {date: DATE_2023_01_18, booked: false},
-            {date: DATE_2023_01_19, booked: false},
-            {date: DATE_2023_01_20, booked: false},
-            {date: DATE_2023_01_21, booked: false},
-            {date: DATE_2023_01_22, booked: false},
+            {date: tomorrow, booked: false},
+            {date: twoDaysInTheFuture, booked: false},
+            {date: threeDaysInTheFuture, booked: false},
+            {date: fourDaysInTheFuture, booked: false},
+            {date: fiveDaysInTheFuture, booked: false},
+            {date: sixDaysInTheFuture, booked: false},
+            {date: sevenDaysInTheFuture, booked: false},
         ]
 
         const bookings = createBookingsFromCalenderDays(calendarDays)
         expect(bookings.length).toBe(0)
     })
 
-    test('Can create bookings 5', () => {
+    test('Can create bookings in future 5', () => {
         const calendarDays: CalendarDay[] = [
-            {date: DATE_2023_01_16, booked: true},
-            {date: DATE_2023_01_17, booked: false},
-            {date: DATE_2023_01_18, booked: false},
-            {date: DATE_2023_01_19, booked: false},
-            {date: DATE_2023_01_20, booked: false},
-            {date: DATE_2023_01_21, booked: false},
-            {date: DATE_2023_01_22, booked: false},
+            {date: tomorrow, booked: true},
+            {date: twoDaysInTheFuture, booked: false},
+            {date: threeDaysInTheFuture, booked: false},
+            {date: fourDaysInTheFuture, booked: false},
+            {date: fiveDaysInTheFuture, booked: false},
+            {date: sixDaysInTheFuture, booked: false},
+            {date: sevenDaysInTheFuture, booked: false},
         ]
 
         const bookings = createBookingsFromCalenderDays(calendarDays)
         expect(bookings.length).toBe(1)
         const booking1 = bookings[0]
 
-        expect(booking1.start).toEqual(new Date(DATE_2023_01_16))
-        expect(booking1.end).toEqual(new Date(DATE_2023_01_16))
+        expect(booking1.start).toEqual(new Date(tomorrow))
+        expect(booking1.end).toEqual(new Date(tomorrow))
         expect(booking1.year).toEqual(2023)
         expect(booking1.status).toEqual(BookingStatus.ACTIVE)
     })
 
-    test('Can create bookings 6', () => {
+    test('Can create bookings in future 6', () => {
         const calendarDays: CalendarDay[] = [
-            {date: DATE_2023_01_16, booked: true},
-            {date: DATE_2023_01_17, booked: false},
-            {date: DATE_2023_01_18, booked: false},
-            {date: DATE_2023_01_19, booked: false},
-            {date: DATE_2023_01_20, booked: false},
-            {date: DATE_2023_01_21, booked: false},
-            {date: DATE_2023_01_22, booked: true},
+            {date: tomorrow, booked: true},
+            {date: twoDaysInTheFuture, booked: false},
+            {date: threeDaysInTheFuture, booked: false},
+            {date: fourDaysInTheFuture, booked: false},
+            {date: fiveDaysInTheFuture, booked: false},
+            {date: sixDaysInTheFuture, booked: false},
+            {date: sevenDaysInTheFuture, booked: true},
         ]
 
         const bookings = createBookingsFromCalenderDays(calendarDays)
@@ -148,15 +152,41 @@ describe('Create bookings from the airbnb calendar', () => {
         const booking2 = bookings[1]
 
         expect(bookings.length).toBe(2)
-        expect(booking1.start).toEqual(new Date(DATE_2023_01_16))
-        expect(booking1.end).toEqual(new Date(DATE_2023_01_16))
+        expect(booking1.start).toEqual(new Date(tomorrow))
+        expect(booking1.end).toEqual(new Date(tomorrow))
         expect(booking1.year).toEqual(2023)
         expect(booking1.status).toEqual(BookingStatus.ACTIVE)
 
-        expect(booking2.start).toEqual(new Date(DATE_2023_01_22))
-        expect(booking2.end).toEqual(new Date(DATE_2023_01_22))
+        expect(booking2.start).toEqual(new Date(sevenDaysInTheFuture))
+        expect(booking2.end).toEqual(new Date(sevenDaysInTheFuture))
         expect(booking2.year).toEqual(2023)
         expect(booking2.status).toEqual(BookingStatus.ACTIVE)
+    })
+
+    test('Can create bookings: previous and current day is always "booked"', () => {
+        const today = Date.now()
+        const todayAsDate = new Date()
+        const dayBeforeYesterday = subDays(today, 2).getTime()
+        const yesterday = subDays(today, 1).getTime()
+        const tomorrow = addDays(today, 1).getTime()
+        const dayAfterTomorrow = addDays(today, 2).getTime()
+
+        const calendarDays: CalendarDay[] = [
+            {date: dayBeforeYesterday, booked: true},
+            {date: yesterday, booked: true},
+            {date: today, booked: true},
+            {date: tomorrow, booked: true},
+            {date: dayAfterTomorrow, booked: false},
+        ]
+
+        const bookings = createBookingsFromCalenderDays(calendarDays)
+        const booking1 = bookings[0]
+
+        expect(bookings.length).toBe(1)
+        expect(booking1.start).toEqual(new Date(tomorrow))
+        expect(booking1.end).toEqual(new Date(tomorrow))
+        expect(booking1.year).toEqual(todayAsDate.getUTCFullYear())
+        expect(booking1.status).toEqual(BookingStatus.ACTIVE)
     })
 
     test('Filter bookings, only "future" bookings', () => {
@@ -164,12 +194,12 @@ describe('Create bookings from the airbnb calendar', () => {
 
         const bookings: Booking[] = [
             {
-                start: new Date(DATE_2023_01_16),
-                end: new Date(DATE_2023_01_17),
+                start: new Date(dayBeforeYesterday),
+                end: new Date(yesterday),
                 status: BookingStatus.ACTIVE,
                 year: 2023,
-                created: new Date(DATE_2023_01_16),
-                modified: new Date(DATE_2023_01_16),
+                created: new Date(dayBeforeYesterday),
+                modified: new Date(dayBeforeYesterday),
             },
         ]
 
@@ -480,7 +510,7 @@ describe('Create bookings from the airbnb calendar', () => {
 
         const scrapedBookings: Booking[] = [
             {
-                start: new Date(DATE_2023_01_20),
+                start: new Date(fiveDaysInTheFuture),
                 end: new Date(DATE_2033_01_21),
                 status: BookingStatus.ACTIVE,
                 year: 2033,

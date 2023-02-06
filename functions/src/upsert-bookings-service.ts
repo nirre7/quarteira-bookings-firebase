@@ -2,7 +2,7 @@ import {Booking} from './booking'
 import {CalendarDay} from './calendar-day'
 import {BookingStatus} from './booking-status'
 import {getFirestore} from 'firebase-admin/firestore'
-import {isEqual, isFuture} from 'date-fns'
+import {isAfter, isEqual, isFuture} from 'date-fns'
 import {firestore} from 'firebase-admin'
 import {cloneDeep} from 'lodash'
 import Timestamp = firestore.Timestamp
@@ -70,7 +70,7 @@ function createBookingsFromCalenderDays(calendarDays: CalendarDay[]): Booking[] 
     calendarDays.forEach((day, index, calendarDaysArray) => {
         const calendarDate = new Date(day.date)
 
-        if (day.booked && !booking?.start) {
+        if (day.booked && !booking?.start && isAfter(calendarDate, today)) {
             booking = {
                 start: calendarDate,
                 created: today,
