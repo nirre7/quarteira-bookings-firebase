@@ -30,7 +30,7 @@ exports.scrapingSchedule = functions
     })
     .region('europe-west3')
     .pubsub
-    .schedule('0 */6 * * *')
+    .schedule('0 */4 * * *')
     .timeZone('Europe/Stockholm')
     .onRun(async context => {
         await scrapeAndSaveNewBookings()
