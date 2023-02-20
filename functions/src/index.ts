@@ -11,6 +11,39 @@ if (!getApps().length) {
     })
 }
 
+// // TODO only for dev
+// const DATE_2033_01_16 = 1989446400000
+// const DATE_2033_01_17 = 1989532800000
+// const DATE_2033_01_20 = 1989792000000
+// const DATE_2033_01_21 = 1989878400000
+// exports.testNotification = functions
+//     .runWith({
+//         timeoutSeconds: 120,
+//     })
+//     .region('europe-west3')
+//     .https.onRequest(async (req, res) => {
+//         const bookings: Booking[] = [
+//             {
+//                 start: new Date(DATE_2033_01_16),
+//                 end: new Date(DATE_2033_01_17),
+//                 status: BookingStatus.ACTIVE,
+//                 year: 2033,
+//                 created: new Date(DATE_2033_01_16),
+//                 modified: new Date(DATE_2033_01_16),
+//             },
+//             {
+//                 start: new Date(DATE_2033_01_20),
+//                 end: new Date(DATE_2033_01_21),
+//                 status: BookingStatus.ACTIVE,
+//                 year: 2033,
+//                 created: new Date(DATE_2033_01_16),
+//                 modified: new Date(DATE_2033_01_16),
+//             },
+//         ]
+//         await sendMessageToDevices(bookings)
+//         res.type('html').send('Send message')
+//     })
+
 // TODO only for dev
 // exports.scrape = functions
 //     .runWith({
@@ -41,7 +74,7 @@ async function scrapeAndSaveNewBookings(): Promise<string> {
     const calendarDays = await scrapeQuarteria()
     let bookings = createBookingsFromCalenderDays(calendarDays)
     bookings = await saveBookings(bookings)
-    await sendMessageToDevices(bookings.length)
+    await sendMessageToDevices(bookings)
 
     const datesFromNewBookings = bookings.map(b => `${b.start.toDateString()} - ${b.end.toDateString()}`).join(', ')
     functions.logger.info(`Saved ${bookings.length} bookings. ${datesFromNewBookings}`)

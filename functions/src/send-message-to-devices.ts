@@ -2,14 +2,17 @@ import {firestore, messaging} from 'firebase-admin'
 import {DeviceToken} from './device-tokens'
 import {format} from 'date-fns'
 import * as functions from 'firebase-functions'
+import {Booking} from './booking'
 
-async function sendMessageToDevices(numberOfNewBookings: number) {
-    if (numberOfNewBookings > 0) {
+async function sendMessageToDevices(bookings: Booking[]) {
+    const numberOfNewBookings = bookings.length
+    if (numberOfNewBookings) {
         const deviceToken = await getToken()
-        const added = format(new Date(), 'yyyy-MM-dd')
         const title = numberOfNewBookings === 1 ? 'New booking' : 'New bookings'
         // eslint-disable-next-line max-len
-        const body = numberOfNewBookings === 1 ? `One booking has been added - ${added}` : `${numberOfNewBookings} bookings has been added - ${added}`
+        let body = numberOfNewBookings === 1 ? 'One booking has been added:\n' : `${numberOfNewBookings} bookings has been added:\n`
+        bookings.forEach(b => body += `> ${format(b.start, 'yyyy-MM-dd')} - ${format(b.end, 'yyyy-MM-dd')} \n`)
+
         try {
             messaging().sendMulticast({
                 tokens: deviceToken.tokens,
