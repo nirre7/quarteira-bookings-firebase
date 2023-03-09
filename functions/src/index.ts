@@ -45,16 +45,16 @@ if (!getApps().length) {
 //     })
 
 // TODO only for dev
-// exports.scrape = functions
-//     .runWith({
-//         timeoutSeconds: 120,
-//         memory: '512MB' || '2GB',
-//     })
-//     .region('europe-west3')
-//     .https.onRequest(async (req, res) => {
-//         const datesFromNewBookings = await scrapeAndSaveNewBookings()
-//         res.type('html').send(datesFromNewBookings)
-//     })
+exports.scrape = functions
+    .runWith({
+        timeoutSeconds: 120,
+        memory: '512MB' || '2GB',
+    })
+    .region('europe-west3')
+    .https.onRequest(async (req, res) => {
+        const datesFromNewBookings = await scrapeAndSaveNewBookings()
+        res.type('html').send(datesFromNewBookings)
+    })
 
 exports.scrapingSchedule = functions
     .runWith({

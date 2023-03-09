@@ -4,8 +4,8 @@ import {BookingStatus} from './booking-status'
 import {Booking} from './booking'
 import * as admin from 'firebase-admin'
 import {firestore} from 'firebase-admin'
+import {addDays, isSameDay, subDays} from 'date-fns'
 import QuerySnapshot = firestore.QuerySnapshot
-import {addDays, subDays} from 'date-fns'
 
 const today = Date.now()
 const dayBeforeYesterday = subDays(today, 2).getTime()
@@ -17,11 +17,12 @@ const fourDaysInTheFuture = addDays(today, 4).getTime()
 const fiveDaysInTheFuture = addDays(today, 5).getTime()
 const sixDaysInTheFuture = addDays(today, 6).getTime()
 const sevenDaysInTheFuture = addDays(today, 7).getTime()
-const DATE_2033_01_16 = 1989446400000
-const DATE_2033_01_17 = 1989532800000
-const DATE_2033_01_19 = 1989705600000
-const DATE_2033_01_20 = 1989792000000
-const DATE_2033_01_21 = 1989878400000
+const DATE_2033_01_16 = 1989486000000
+const DATE_2033_01_17 = 1989572400000
+const DATE_2033_01_18 = 1989658800000
+const DATE_2033_01_19 = 1989745200000
+const DATE_2033_01_20 = 1989831600000
+const DATE_2033_01_21 = 1989918000000
 
 describe('Create bookings from the airbnb calendar', () => {
     test('Can create bookings in future 1', () => {
@@ -287,7 +288,7 @@ describe('Create bookings from the airbnb calendar', () => {
 
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
-        expect(filteredBookings.length).toBe(0)
+        expect(filteredBookings.length).toBe(1)
     })
 
     test('Filter bookings - new bookings from scrape', () => {
@@ -468,7 +469,7 @@ describe('Create bookings from the airbnb calendar', () => {
 
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
-        expect(filteredBookings.length).toBe(0)
+        expect(filteredBookings.length).toBe(1)
     })
 
     test('Filter bookings - new bookings from scrape 5', () => {
@@ -511,6 +512,64 @@ describe('Create bookings from the airbnb calendar', () => {
         expect(filteredBookings.length).toBe(1)
     })
 
+    test('Filter bookings - new booking is in between 2 old bookings', () => {
+        const {filterNewBookings} = exportedForTesting
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                },
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_20),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_16),
+                            modified: new Date(DATE_2033_01_16),
+                        }
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
+
+        expect(filteredBookings.length).toBe(1)
+        expect(isSameDay(filteredBookings[0].start, new Date(DATE_2033_01_18))).toBeTruthy()
+        expect(isSameDay(filteredBookings[0].end, new Date(DATE_2033_01_19))).toBeTruthy()
+    })
+
     test('Set bookings to removed if needed 1', () => {
         const {setBookingsToRemovedIfNeeded} = exportedForTesting
         const mockUpdate = jest.fn(obj => obj.status)
@@ -544,6 +603,9 @@ describe('Create bookings from the airbnb calendar', () => {
         expect(mockUpdate.mock.calls).toHaveLength(0)
     })
 
+    /**
+     * In this case a new booking should be created and the old one should still be active
+     */
     test('Set bookings to removed if needed 2', () => {
         const {setBookingsToRemovedIfNeeded} = exportedForTesting
         const mockUpdate = jest.fn(obj => obj.status)
@@ -736,5 +798,71 @@ describe('Create bookings from the airbnb calendar', () => {
         setBookingsToRemovedIfNeeded(bookingsFromDb, scrapedBookings)
 
         expect(mockUpdate.mock.calls).toHaveLength(0)
+    })
+
+    /**
+     * It is probably (!) a new booking between to old bookings
+     */
+    test('Do not set bookings to removed if bookings are within a scraped bookings date.', async () => {
+        const {setBookingsToRemovedIfNeeded} = exportedForTesting
+        const mockUpdate = jest.fn(obj => obj.status)
+
+        const scrapedBookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+
+        const bookingsFromDb = {
+            docs: [
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_19),
+                            modified: new Date(DATE_2033_01_19),
+                        }
+                    },
+                    ref: {
+                        update: mockUpdate,
+                    },
+                },
+                {
+                    data: () => {
+                        return {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_19),
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
+                            status: BookingStatus.ACTIVE,
+                            year: 2033,
+                            created: new Date(DATE_2033_01_16),
+                            modified: new Date(DATE_2033_01_16),
+                        }
+                    },
+                    ref: {
+                        update: mockUpdate,
+                    },
+                },
+            ],
+        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
+
+        await setBookingsToRemovedIfNeeded(bookingsFromDb, scrapedBookings)
+
+        expect(mockUpdate.mock.calls).toHaveLength(2)
     })
 })
