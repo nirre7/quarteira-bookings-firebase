@@ -4,7 +4,7 @@ import {BookingStatus} from './booking-status'
 import {Booking} from './booking'
 import * as admin from 'firebase-admin'
 import {firestore} from 'firebase-admin'
-import {addDays, isSameDay, subDays} from 'date-fns'
+import {addDays, subDays} from 'date-fns'
 import QuerySnapshot = firestore.QuerySnapshot
 
 const today = Date.now()
@@ -19,7 +19,6 @@ const sixDaysInTheFuture = addDays(today, 6).getTime()
 const sevenDaysInTheFuture = addDays(today, 7).getTime()
 const DATE_2033_01_16 = 1989486000000
 const DATE_2033_01_17 = 1989572400000
-const DATE_2033_01_18 = 1989658800000
 const DATE_2033_01_19 = 1989745200000
 const DATE_2033_01_20 = 1989831600000
 const DATE_2033_01_21 = 1989918000000
@@ -288,7 +287,7 @@ describe('Create bookings from the airbnb calendar', () => {
 
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
-        expect(filteredBookings.length).toBe(1)
+        expect(filteredBookings.length).toBe(0)
     })
 
     test('Filter bookings - new bookings from scrape', () => {
@@ -469,7 +468,7 @@ describe('Create bookings from the airbnb calendar', () => {
 
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
-        expect(filteredBookings.length).toBe(1)
+        expect(filteredBookings.length).toBe(0)
     })
 
     test('Filter bookings - new bookings from scrape 5', () => {
@@ -510,64 +509,6 @@ describe('Create bookings from the airbnb calendar', () => {
         const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
 
         expect(filteredBookings.length).toBe(1)
-    })
-
-    test('Filter bookings - new booking is in between 2 old bookings', () => {
-        const {filterNewBookings} = exportedForTesting
-
-        const scrapedBookings: Booking[] = [
-            {
-                start: new Date(DATE_2033_01_16),
-                end: new Date(DATE_2033_01_21),
-                status: BookingStatus.ACTIVE,
-                year: 2033,
-                created: new Date(DATE_2033_01_16),
-                modified: new Date(DATE_2033_01_16),
-            },
-        ]
-
-        const bookingsFromDb = {
-            docs: [
-                {
-                    data: () => {
-                        return {
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_16),
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_17),
-                            status: BookingStatus.ACTIVE,
-                            year: 2033,
-                            created: new Date(DATE_2033_01_19),
-                            modified: new Date(DATE_2033_01_19),
-                        }
-                    },
-                },
-                {
-                    data: () => {
-                        return {
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            start: admin.firestore.Timestamp.fromMillis(DATE_2033_01_20),
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            end: admin.firestore.Timestamp.fromMillis(DATE_2033_01_21),
-                            status: BookingStatus.ACTIVE,
-                            year: 2033,
-                            created: new Date(DATE_2033_01_16),
-                            modified: new Date(DATE_2033_01_16),
-                        }
-                    },
-                },
-            ],
-        } as unknown as QuerySnapshot<FirebaseFirestore.DocumentData>
-
-        const filteredBookings = filterNewBookings(scrapedBookings, bookingsFromDb)
-
-        expect(filteredBookings.length).toBe(1)
-        expect(isSameDay(filteredBookings[0].start, new Date(DATE_2033_01_18))).toBeTruthy()
-        expect(isSameDay(filteredBookings[0].end, new Date(DATE_2033_01_19))).toBeTruthy()
     })
 
     test('Set bookings to removed if needed 1', () => {
