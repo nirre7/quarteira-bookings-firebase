@@ -2,14 +2,13 @@ import {Booking} from './booking'
 import {CalendarDay} from './calendar-day'
 import {BookingStatus} from './booking-status'
 import {getFirestore} from 'firebase-admin/firestore'
-import {eachDayOfInterval, isAfter, isFuture, isSameDay, isWithinInterval, max, min} from 'date-fns'
+import {isAfter, isFuture, isSameDay, isWithinInterval} from 'date-fns'
 import {firestore} from 'firebase-admin'
 import {cloneDeep} from 'lodash'
 import Timestamp = firestore.Timestamp
 import QuerySnapshot = firestore.QuerySnapshot
 import DocumentData = firestore.DocumentData
 import Firestore = firestore.Firestore
-
 
 function getStart(doc: DocumentData): Date {
     return ((doc.data() as Booking).start as unknown as Timestamp).toDate()
@@ -19,79 +18,24 @@ function getEnd(doc: DocumentData): Date {
     return ((doc.data() as Booking).end as unknown as Timestamp).toDate()
 }
 
-function doesBookingOverlapBookingsInDb(scrapedBooking: Booking, bookingsInDb: QuerySnapshot<DocumentData>): boolean {
-    return bookingsInDb.docs
-        .filter(bInDb => bInDb.data()?.status === BookingStatus.ACTIVE)
-        .filter(bInDb => {
-            const startInDb = getStart(bInDb)
-            const endInDb = getEnd(bInDb)
-            return !isSameDay(startInDb, scrapedBooking.start) || !isSameDay(endInDb, scrapedBooking.end)
-        })
-        .some(bInDb => {
-            const startInDb = getStart(bInDb)
-            const endInDb = getEnd(bInDb)
-            return isWithinInterval(startInDb, {start: scrapedBooking.start, end: scrapedBooking.end}) &&
-                isWithinInterval(endInDb, {start: scrapedBooking.start, end: scrapedBooking.end})
-        })
-}
-
-function getNweBookingFromOverlap(scrapedBooking: Booking, bookingsInDb: QuerySnapshot<DocumentData>): Booking {
-    const bookingsInDbWithinSameInterval = bookingsInDb.docs
-        .filter(bInDb => bInDb.data()?.status === BookingStatus.ACTIVE)
-        .filter(bInDb => {
-            const startInDb = getStart(bInDb)
-            const endInDb = getEnd(bInDb)
-            return isWithinInterval(startInDb, {start: scrapedBooking.start, end: scrapedBooking.end}) &&
-                isWithinInterval(endInDb, {start: scrapedBooking.start, end: scrapedBooking.end})
-        })
-
-    const datesWithinIntervalInDb = bookingsInDbWithinSameInterval.flatMap(bInDb => eachDayOfInterval({
-        start: getStart(bInDb),
-        end: getEnd(bInDb),
-    }))
-
-    const datesInNewBookingInterval = eachDayOfInterval({start: scrapedBooking.start, end: scrapedBooking.end})
-    // eslint-disable-next-line max-len
-    const newBookingDates = datesInNewBookingInterval.filter(d1 => !datesWithinIntervalInDb.some(d2 => isSameDay(d1, d2)))
-
-    return {
-        ...scrapedBooking,
-        start: min(newBookingDates),
-        end: max(newBookingDates),
-    }
-}
-
-function isNewBooking(scrapedBooking: Booking, bookingsInDb: QuerySnapshot<DocumentData>): boolean {
-    return !bookingsInDb.docs
-        .filter(bInDb => bInDb.data()?.status === BookingStatus.ACTIVE)
-        .some(bInDb => {
-            const startInDb = getStart(bInDb)
-            const endInDb = getEnd(bInDb)
-
-            return isSameDay(scrapedBooking.start, startInDb) && isSameDay(scrapedBooking.end, endInDb)
-        })
-}
-
-function findNewBookings(bookings: Booking[], bookingsInDb: QuerySnapshot<FirebaseFirestore.DocumentData>) {
-    const newBookings: Booking[] = []
-
-    bookings
+function filterNewBookings(bookings: Booking[], bookingsInDb: QuerySnapshot<FirebaseFirestore.DocumentData>) {
+    return bookings
         .filter(b => isFuture(new Date(b.start)))
-        .forEach(b => {
-            const overlapBookingsInDb = doesBookingOverlapBookingsInDb(b, bookingsInDb)
+        .filter(b => {
+            return !bookingsInDb.docs
+                .filter(bInDb => bInDb.data()?.status === BookingStatus.ACTIVE)
+                .some(bInDb => {
+                    const startInDb = getStart(bInDb)
+                    const endInDb = getEnd(bInDb)
 
-            if (overlapBookingsInDb) {
-                newBookings.push(getNweBookingFromOverlap(b, bookingsInDb))
-            } else if (isNewBooking(b, bookingsInDb)) {
-                newBookings.push(b)
-            }
+                    return isWithinInterval(b.start, {start: startInDb, end: endInDb}) &&
+                        isWithinInterval(b.end, {start: startInDb, end: endInDb})
+                })
         })
-
-    return newBookings
 }
 
 export const exportedForTesting = {
-    filterNewBookings: findNewBookings,
+    filterNewBookings,
     setBookingsToRemovedIfNeeded,
 }
 
@@ -121,7 +65,7 @@ async function saveBookings(scrapedBookings: Booking[]): Promise<Booking[]> {
 
     const bookingsInDb = await getAllBookingsFromDb(firestore)
     await setBookingsToRemovedIfNeeded(bookingsInDb, scrapedBookings)
-    const newBookings = findNewBookings(scrapedBookings, bookingsInDb)
+    const newBookings = filterNewBookings(scrapedBookings, bookingsInDb)
 
     await newBookings.forEach(b => firestore.collection('bookings').add(b))
 
