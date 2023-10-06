@@ -1,7 +1,6 @@
 import {Booking} from './booking'
 import {CalendarDay} from './calendar-day'
 import {BookingStatus} from './booking-status'
-import {getFirestore} from 'firebase-admin/firestore'
 import {isAfter, isFuture, isSameDay, isWithinInterval} from 'date-fns'
 import {firestore} from 'firebase-admin'
 import {cloneDeep} from 'lodash'
@@ -60,9 +59,7 @@ async function setBookingsToRemovedIfNeeded(bookingsInDb: QuerySnapshot<Document
     }
 }
 
-async function saveBookings(scrapedBookings: Booking[]): Promise<Booking[]> {
-    const firestore = getFirestore()
-
+async function saveBookings(scrapedBookings: Booking[], firestore: FirebaseFirestore.Firestore): Promise<Booking[]> {
     const bookingsInDb = await getAllBookingsFromDb(firestore)
     await setBookingsToRemovedIfNeeded(bookingsInDb, scrapedBookings)
     const newBookings = filterNewBookings(scrapedBookings, bookingsInDb)

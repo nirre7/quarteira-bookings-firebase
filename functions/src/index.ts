@@ -1,9 +1,11 @@
 import * as functions from 'firebase-functions'
 import scrapeQuarteria from './scrape-quarteria'
 import {createBookingsFromCalenderDays, saveBookings} from './upsert-bookings-service'
-import {sendMessageToDevices} from './send-message-to-devices'
+import {sendBookingNotifications, sendReviewsNotifications} from './send-message-to-devices'
 import {getApps, initializeApp} from 'firebase-admin/app'
 import {credential} from 'firebase-admin'
+import {saveReviews} from './upsert-reviews-service'
+import {getFirestore} from 'firebase-admin/firestore'
 
 if (!getApps().length) {
     initializeApp({
@@ -44,6 +46,8 @@ if (!getApps().length) {
 //         res.type('html').send('Send message')
 //     })
 
+export const firestore = getFirestore()
+
 // TODO only for dev
 exports.scrape = functions
     .runWith({
@@ -71,12 +75,19 @@ exports.scrapingSchedule = functions
     })
 
 async function scrapeAndSaveNewBookings(): Promise<string> {
-    const calendarDays = await scrapeQuarteria()
-    let bookings = createBookingsFromCalenderDays(calendarDays)
-    bookings = await saveBookings(bookings)
-    await sendMessageToDevices(bookings)
+    const scrapeResult = await scrapeQuarteria()
+
+    let bookings = createBookingsFromCalenderDays(scrapeResult.calendarDays)
+    bookings = await saveBookings(bookings, firestore)
+    await sendBookingNotifications(bookings)
+
+    const reviews = await saveReviews(scrapeResult.reviews, firestore)
+    await sendReviewsNotifications(reviews)
 
     const datesFromNewBookings = bookings.map(b => `${b.start.toDateString()} - ${b.end.toDateString()}`).join(', ')
     functions.logger.info(`Saved ${bookings.length} bookings. ${datesFromNewBookings}`)
-    return datesFromNewBookings
+
+    const idsFromReviews = reviews.map(r => `${r.id}`).join(', ')
+    functions.logger.info(`Saved ${bookings.length} reviews. ${idsFromReviews}`)
+    return idsFromReviews
 }

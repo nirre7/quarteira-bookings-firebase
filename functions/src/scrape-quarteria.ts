@@ -2,9 +2,13 @@ import puppeteer from 'puppeteer'
 import * as functions from 'firebase-functions'
 import {CalendarDay} from './calendar-day'
 import {CalendarResponse} from './calendar-response'
+import {Review} from './review'
+import {ReviewsResponse} from './reviews-response'
+import {ScrapeResult} from './scrape-result'
 
-const scrapeQuarteira = async (): Promise<CalendarDay[]> => {
+const scrapeQuarteira = async (): Promise<ScrapeResult> => {
     const calendarDays: CalendarDay[] = []
+    const reviews: Review[] = []
 
     const browser = await puppeteer.launch({
         headless: true,
@@ -21,6 +25,7 @@ const scrapeQuarteira = async (): Promise<CalendarDay[]> => {
         ],
     })
 
+
     try {
         functions.logger.info('Starting scrape')
 
@@ -28,13 +33,18 @@ const scrapeQuarteira = async (): Promise<CalendarDay[]> => {
         await page.setViewport({width: 1280, height: 720})
         await page.setUserAgent(
             // eslint-disable-next-line max-len
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36'
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36',
         )
 
         page.on('response', async interceptedResponse => {
             if (interceptedResponse.url().startsWith('https://www.airbnb.com/api/v3/PdpAvailabilityCalendar')) {
                 const days = getCalenderDays(await interceptedResponse.json())
                 calendarDays.push(...days)
+            }
+
+            if (interceptedResponse.url().startsWith('https://www.airbnb.com/api/v3/StaysPdpReviews')) {
+                const tempReviews = getReviews(await interceptedResponse.json())
+                reviews.push(...tempReviews)
             }
         })
 
@@ -51,7 +61,7 @@ const scrapeQuarteira = async (): Promise<CalendarDay[]> => {
         functions.logger.info('Done with scrape')
     }
 
-    return calendarDays
+    return {calendarDays, reviews}
 }
 
 function getCalenderDays(calendar: CalendarResponse): CalendarDay[] {
@@ -66,12 +76,25 @@ function getCalenderDays(calendar: CalendarResponse): CalendarDay[] {
         })
     })
 
-    return removeDuplicates(calendarDays)
+    return removeCalendarDayDuplicates(calendarDays)
 }
 
-function removeDuplicates(calendarDays: CalendarDay[]) {
+function removeCalendarDayDuplicates(calendarDays: CalendarDay[]) {
     return calendarDays.filter((object, index, self) => {
         return index === self.findIndex(day => day['date'] === object['date'])
+    })
+}
+
+function getReviews(reviews: ReviewsResponse): Review[] {
+    return reviews?.data?.presentation?.stayProductDetailPage?.reviews?.reviews.map(review => {
+        return {
+            guestComments: review.comments,
+            created: new Date(review.createdAt),
+            id: review.id,
+            language: review.language,
+            response: review.response,
+            reviewer: review.reviewer,
+        }
     })
 }
 
