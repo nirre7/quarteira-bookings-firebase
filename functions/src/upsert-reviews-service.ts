@@ -6,7 +6,7 @@ import DocumentData = firestore.DocumentData
 
 // eslint-disable-next-line max-len
 function filterNewReviews(scrapedReviews: Review[], allReviewsFromDb: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>): Review[] {
-    const idsFromDb = allReviewsFromDb.docs.map(doc => doc.id) || []
+    const idsFromDb = allReviewsFromDb.docs.map(doc => ((doc.data()) as Review).id) || []
     return scrapedReviews.filter(review => !idsFromDb.includes(review.id))
 }
 
