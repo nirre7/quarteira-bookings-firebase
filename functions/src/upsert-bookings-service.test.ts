@@ -8,6 +8,7 @@ import {addDays, subDays} from 'date-fns'
 import QuerySnapshot = firestore.QuerySnapshot
 
 const today = Date.now()
+const currentYear = new Date().getFullYear()
 const dayBeforeYesterday = subDays(today, 2).getTime()
 const yesterday = subDays(today, 1).getTime()
 const tomorrow = addDays(today, 1).getTime()
@@ -43,12 +44,12 @@ describe('Create bookings from the airbnb calendar', () => {
 
         expect(booking1.start).toEqual(new Date(twoDaysInTheFuture))
         expect(booking1.end).toEqual(new Date(threeDaysInTheFuture))
-        expect(booking1.year).toEqual(2023)
+        expect(booking1.year).toEqual(currentYear)
         expect(booking1.status).toEqual(BookingStatus.ACTIVE)
 
         expect(booking2.start).toEqual(new Date(fiveDaysInTheFuture))
         expect(booking2.end).toEqual(new Date(sevenDaysInTheFuture))
-        expect(booking2.year).toEqual(2023)
+        expect(booking2.year).toEqual(currentYear)
         expect(booking2.status).toEqual(BookingStatus.ACTIVE)
     })
 
@@ -69,7 +70,7 @@ describe('Create bookings from the airbnb calendar', () => {
         expect(bookings.length).toBe(1)
         expect(booking.start).toEqual(new Date(tomorrow))
         expect(booking.end).toEqual(new Date(sevenDaysInTheFuture))
-        expect(booking.year).toEqual(2023)
+        expect(booking.year).toEqual(currentYear)
         expect(booking.status).toEqual(BookingStatus.ACTIVE)
     })
 
@@ -91,12 +92,12 @@ describe('Create bookings from the airbnb calendar', () => {
         expect(bookings.length).toBe(2)
         expect(booking1.start).toEqual(new Date(tomorrow))
         expect(booking1.end).toEqual(new Date(threeDaysInTheFuture))
-        expect(booking1.year).toEqual(2023)
+        expect(booking1.year).toEqual(currentYear)
         expect(booking1.status).toEqual(BookingStatus.ACTIVE)
 
         expect(booking2.start).toEqual(new Date(sixDaysInTheFuture))
         expect(booking2.end).toEqual(new Date(sixDaysInTheFuture))
-        expect(booking2.year).toEqual(2023)
+        expect(booking2.year).toEqual(currentYear)
         expect(booking2.status).toEqual(BookingStatus.ACTIVE)
     })
 
@@ -132,7 +133,7 @@ describe('Create bookings from the airbnb calendar', () => {
 
         expect(booking1.start).toEqual(new Date(tomorrow))
         expect(booking1.end).toEqual(new Date(tomorrow))
-        expect(booking1.year).toEqual(2023)
+        expect(booking1.year).toEqual(currentYear)
         expect(booking1.status).toEqual(BookingStatus.ACTIVE)
     })
 
@@ -154,12 +155,12 @@ describe('Create bookings from the airbnb calendar', () => {
         expect(bookings.length).toBe(2)
         expect(booking1.start).toEqual(new Date(tomorrow))
         expect(booking1.end).toEqual(new Date(tomorrow))
-        expect(booking1.year).toEqual(2023)
+        expect(booking1.year).toEqual(currentYear)
         expect(booking1.status).toEqual(BookingStatus.ACTIVE)
 
         expect(booking2.start).toEqual(new Date(sevenDaysInTheFuture))
         expect(booking2.end).toEqual(new Date(sevenDaysInTheFuture))
-        expect(booking2.year).toEqual(2023)
+        expect(booking2.year).toEqual(currentYear)
         expect(booking2.status).toEqual(BookingStatus.ACTIVE)
     })
 

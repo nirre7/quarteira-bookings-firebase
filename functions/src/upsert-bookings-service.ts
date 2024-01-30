@@ -22,7 +22,9 @@ function filterNewBookings(bookings: Booking[], bookingsInDb: QuerySnapshot<Fire
         .filter(b => isFuture(new Date(b.start)))
         .filter(b => {
             return !bookingsInDb.docs
-                .filter(bInDb => bInDb.data()?.status === BookingStatus.ACTIVE)
+                .filter(bInDb => {
+                    return [BookingStatus.ACTIVE, BookingStatus.OWNERS_USE].includes(bInDb.data()?.status)
+                })
                 .some(bInDb => {
                     const startInDb = getStart(bInDb)
                     const endInDb = getEnd(bInDb)
