@@ -6,6 +6,8 @@ import {getApps, initializeApp} from 'firebase-admin/app'
 import {credential} from 'firebase-admin'
 import {saveReviews} from './upsert-reviews-service'
 import {getFirestore} from 'firebase-admin/firestore'
+import {Booking} from './booking'
+import {BookingStatus} from './booking-status'
 
 if (!getApps().length) {
     initializeApp({
@@ -14,37 +16,37 @@ if (!getApps().length) {
 }
 
 // // TODO only for dev
-// const DATE_2033_01_16 = 1989446400000
-// const DATE_2033_01_17 = 1989532800000
-// const DATE_2033_01_20 = 1989792000000
-// const DATE_2033_01_21 = 1989878400000
-// exports.testNotification = functions
-//     .runWith({
-//         timeoutSeconds: 120,
-//     })
-//     .region('europe-west3')
-//     .https.onRequest(async (req, res) => {
-//         const bookings: Booking[] = [
-//             {
-//                 start: new Date(DATE_2033_01_16),
-//                 end: new Date(DATE_2033_01_17),
-//                 status: BookingStatus.ACTIVE,
-//                 year: 2033,
-//                 created: new Date(DATE_2033_01_16),
-//                 modified: new Date(DATE_2033_01_16),
-//             },
-//             {
-//                 start: new Date(DATE_2033_01_20),
-//                 end: new Date(DATE_2033_01_21),
-//                 status: BookingStatus.ACTIVE,
-//                 year: 2033,
-//                 created: new Date(DATE_2033_01_16),
-//                 modified: new Date(DATE_2033_01_16),
-//             },
-//         ]
-//         await sendMessageToDevices(bookings)
-//         res.type('html').send('Send message')
-//     })
+const DATE_2033_01_16 = 1989446400000
+const DATE_2033_01_17 = 1989532800000
+const DATE_2033_01_20 = 1989792000000
+const DATE_2033_01_21 = 1989878400000
+exports.testNotification = functions
+    .runWith({
+        timeoutSeconds: 120,
+    })
+    .region('europe-west3')
+    .https.onRequest(async (req, res) => {
+        const bookings: Booking[] = [
+            {
+                start: new Date(DATE_2033_01_16),
+                end: new Date(DATE_2033_01_17),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+            {
+                start: new Date(DATE_2033_01_20),
+                end: new Date(DATE_2033_01_21),
+                status: BookingStatus.ACTIVE,
+                year: 2033,
+                created: new Date(DATE_2033_01_16),
+                modified: new Date(DATE_2033_01_16),
+            },
+        ]
+        await sendBookingNotifications(bookings)
+        res.type('html').send('Send message')
+    })
 
 export const firestore = getFirestore()
 
